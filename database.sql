@@ -18,21 +18,22 @@ CREATE TABLE productos (
     categoria VARCHAR(100),
     precio_base DECIMAL(10, 2) NOT NULL,
     cantidad_total Integer(10) NOT NULL,
-    descuento DECIMAL(10, 2) DEFAULT 0.00
+    descuento DECIMAL(10, 2) DEFAULT 0.00,
+    tiene_iva BOOLEAN
 );
 
 -- Insertar productos de prueba
-INSERT INTO productos (nombre, categoria, precio_base, cantidad_total, descuento) VALUES
-('Desengrasante bicarbonato naranja limon ajax 1L', 'Limpieza de cocina', 5.42, 50, 0.05),
-('Detergente fragancia floral multi clean 400gr 1x30 (l391) polar', 'Lavandería', 1.50, 30, 0.10),
-('Lavaplatos en crema limon axion 450 gr', 'Limpieza de cocina', 4.53, 25, 0.00),
-('Esponja multiuso izy clean', 'Limpieza de cocina', 1.39, 35, 0.20),
-('Desifectante fresh ivon 1000ml', 'Limpieza general', 3.73, 20, 0.15),
-('Lavaplatos liquido salt citrus ajax ultra 366ml (impor)', 'Limpieza de cocina', 3.15, 45, 0.08),
-('Esponja doble uso slim limpia sol (3 pack) ', 'Limpieza de cocina', 2.20, 26, 0.00),
-('Destapador de cañeria diablo rojo pino 1l', 'Limpieza de baño', 8.84, 40, 0.10),
-('Jabon en polvo fragancia citrica multi clean 5 kg (l384)', 'Lavandería', 12.53, 35, 0.05),
-('Lavaplatos en crema multiuso axion 450 gr', 'Limpieza de cocina', 4.83, 30, 0.00);
+INSERT INTO productos (nombre, categoria, precio_base, cantidad_total, descuento, tiene_iva) VALUES
+('Desengrasante bicarbonato naranja limon ajax 1L', 'Limpieza de cocina', 5.42, 50, 0.05, TRUE),
+('Detergente fragancia floral multi clean 400gr 1x30 (l391) polar', 'Lavandería', 1.50, 30, 0.10, TRUE),
+('Lavaplatos en crema limon axion 450 gr', 'Limpieza de cocina', 4.53, 25, 0.00, FALSE),
+('Esponja multiuso izy clean', 'Limpieza de cocina', 1.39, 35, 0.20, TRUE),
+('Desifectante fresh ivon 1000ml', 'Limpieza general', 3.73, 20, 0.15, FALSE),
+('Lavaplatos liquido salt citrus ajax ultra 366ml (impor)', 'Limpieza de cocina', 3.15, 45, 0.08, FAlse),
+('Esponja doble uso slim limpia sol (3 pack) ', 'Limpieza de cocina', 2.20, 26, 0.00, TRUE),
+('Destapador de cañeria diablo rojo pino 1l', 'Limpieza de baño', 8.84, 40, 0.10, FALSE),
+('Jabon en polvo fragancia citrica multi clean 5 kg (l384)', 'Lavandería', 12.53, 35, 0.05, TRUE),
+('Lavaplatos en crema multiuso axion 450 gr', 'Limpieza de cocina', 4.83, 30, 0.00, FALSE);
 
 -- Crear la tabla de carrito
 CREATE TABLE IF NOT EXISTS carritos (

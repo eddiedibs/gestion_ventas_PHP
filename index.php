@@ -7,8 +7,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 <body>
-<div id="messageContainer" class="alert alert-success d-none" role="alert">
-    <strong>Success!</strong> Your operation was successful.
+<div id="messageContainer" class="fixed-top alert alert-success d-none" role="alert">
 </div>
 <div class="container">
     <h2>Registro de Venta</h2>
@@ -52,7 +51,8 @@
     
         <!-- Quantity Up Button -->
 
-        <button type="button" class="btn btn-primary" id="agregar_producto">Agregar Producto</button>
+        <button class="btn-producto btn btn-primary" type="button" id="agregar_producto">Agregar Producto</button>
+        <button class="btn-producto btn btn-danger" type="button" id="eliminar_producto">Eliminar Producto</button>
     </form>
 
     <hr>
@@ -65,6 +65,7 @@
                 <th>Cantidad</th>
                 <th>Precio Base</th>
                 <th>Descuento</th>
+                <th>IVA</th>
                 <th>Subtotal (USD)</th>
             </tr>
         </thead>
@@ -77,17 +78,17 @@
 
     <!-- Mostrar total de la venta -->
     <div class="form-group">
-        <label for="subtotal">Subtotal: <del id="sin_descuento" readonly></del></label>
-        <input type="text" class="form-control" id="subtotal" readonly>
+        <label for="subtotal">Subtotal:</label>
+        <input type="text" class="form-control" id="subtotal_input" readonly>
         
     </div>
     <div class="form-group">
         <label for="impuesto">IVA (16%):</label>
-        <input type="text" class="form-control" id="impuesto" readonly>
+        <input type="text" class="form-control" id="impuesto_input" readonly>
     </div>
     <div class="form-group">
         <label for="total">Total:</label>
-        <input type="text" class="form-control" id="total" readonly>
+        <input type="text" class="form-control" id="total_input" readonly>
     </div>
 
     <button type="button" class="btn btn-success" id="finalizar_venta">Finalizar Venta</button>
@@ -97,6 +98,9 @@
 // Función para cargar productos desde la base de datos
 $(document).ready(function() {
     cargarProductos();
+    $('#subtotal_input').val("");
+    $('#impuesto_input').val("");
+    $('#total_input').val("");
 
     $('#seleccionar_cliente').on('click', function() {
         // Guardar cliente usando AJAX
@@ -131,7 +135,6 @@ $(document).ready(function() {
             if (xhr.status === 200) {
                 // Parse the response text to JSON
                 var jsonResponse = JSON.parse(xhr.responseText);
-                console.log(jsonResponse);
                 // Assuming the response contains a 'status' field indicating success
                 if (jsonResponse.status === 'success') {
                     // Update the message content and remove 'd-none' class for visibility
@@ -143,8 +146,6 @@ $(document).ready(function() {
                     
                 } else {
                     // Update the message content and style for error
-                    console.log("ENTERED FAILED");
-                    console.log(jsonResponse.message);
                     $('#messageContainer').text(jsonResponse.message);
                     $('#messageContainer').addClass('alert-danger');
                 }
@@ -168,16 +169,17 @@ $(document).ready(function() {
     });
 
     $('#guardar_cliente').on('click', function() {
+        $('#subtotal_input').val("");
+        $('#impuesto_input').val("");
+        $('#total_input').val("");
         // Guardar cliente usando AJAX
-        // var data = $('#form_cliente');
         var data = {
             nombre: $('#nombre').val(),
             cedula_rif: $('#cedula_rif').val(),
             telefono: $('#telefono').val(),
             direccion: $('#direccion').val()
         };
-        // console.log(data);
-        
+
         $.post('guardar_cliente.php', data, function(_, _, xhr) {
             // Check if the request was successful
             if (xhr.status === 200) {
@@ -191,8 +193,6 @@ $(document).ready(function() {
                     $('#messageContainer').addClass('alert-success');
                 } else {
                     // Update the message content and style for error
-                    console.log("ENTERED FAILED");
-                    console.log(jsonResponse.message);
                     $('#messageContainer').text(jsonResponse.message);
                     $('#messageContainer').addClass('alert-danger');
                 }
@@ -225,7 +225,6 @@ $(document).ready(function() {
 
     $('#producto').on('change', function() {
         var producto_id = $(this).val();
-        console.log( producto_id );
         $.get('cargar_producto_individual.php', { id: producto_id }, function(data) {
             $('#cantidad').attr('max', data.producto_cantidad_disponible); // Update the max attribute
             if (data.producto_cantidad_disponible < $('#cantidad').val()){
@@ -235,18 +234,16 @@ $(document).ready(function() {
     });
 
 
-    $('#agregar_producto').on('click', function(e) {
+    $('.btn-producto').on('click', function(e) {
         e.preventDefault();
         // Agregar producto a la lista de productos
         var producto_id = $('#producto').val();
         var cantidadIngresada = $("#cantidad").val(); // Obtener la cantidad ingresada por el usuario
-
-        $.post('agregar_producto.php', { producto_id: producto_id, cantidad: cantidadIngresada }, function(_, _, xhr) {
-            console.log(xhr.responseText);
+        var botonId = $(this).attr('id');
+        $.post('handler_producto.php', { producto_id: producto_id, cantidad: cantidadIngresada, accion: botonId}, function(_, _, xhr) {
             if (xhr.status === 200) {
                 // Parse the response text to JSON
                 var jsonResponse = JSON.parse(xhr.responseText);
-                console.log(jsonResponse);
                 // Assuming the response contains a 'status' field indicating success
                 if (jsonResponse.status === 'success') {
                     // Always make the message visible
@@ -295,9 +292,9 @@ $(document).ready(function() {
         var data = {
             cliente_id: $('#cedula_rif').val(),
             productos: obtenerProductos(),
-            subtotal: $('#subtotal').val(),
-            impuesto: $('#impuesto').val(),
-            total: $('#total').val()
+            subtotal: $('#subtotal_input').val(),
+            impuesto: $('#impuesto_input').val(),
+            total: $('#total_input').val()
         };
         $.post('finalizar_venta.php', data, function(response) {
             alert(response);
@@ -330,11 +327,11 @@ function obtenerProductos() {
     $.get('obtener_items_carrito.php', function(_, _, xhr) {
             // Clear any existing options
             $('#lista_productos').empty();
+
             
             if (xhr.status === 200) {
                 // Parse the response text to JSON
                 var jsonResponse = JSON.parse(xhr.responseText);
-                console.log(jsonResponse);
 
                 // Assuming the response contains a 'status' field indicating success
                 if (jsonResponse.status === 'success') {
@@ -349,12 +346,15 @@ function obtenerProductos() {
                         row.append($('<td></td>').text(product.cantidad));
                         row.append($('<td></td>').text(product.precio_base));
                         row.append($('<td></td>').text(product.descuento));
+                        row.append($('<td></td>').text(product.IVA));
                         row.append($('<td></td>').text(product.subtotal));
                         $('#lista_productos').append(row);
                     }
+                    $('#subtotal_input').val(jsonResponse.subtotal_final);
+                    $('#impuesto_input').val(jsonResponse.total_iva);
+                    $('#total_input').val(jsonResponse.total);
                 } else {
                     // Update the message content and style for error
-                    console.log(jsonResponse.message);
                     $('#messageContainer').text(jsonResponse.message);
                     $('#messageContainer').addClass('alert-danger');
                 }
@@ -385,9 +385,9 @@ function actualizarTotal() {
     });
     var impuesto = subtotal * 0.16;
     var total = subtotal + impuesto;
-    $('#subtotal').val(subtotal.toFixed(2));
-    $('#impuesto').val(impuesto.toFixed(2));
-    $('#total').val(total.toFixed(2));
+    $('#subtotal_input').val(subtotal.toFixed(2));
+    $('#impuesto_input').val(impuesto.toFixed(2));
+    $('#total_input').val(total.toFixed(2));
 }
 </script>
 

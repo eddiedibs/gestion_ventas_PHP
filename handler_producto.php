@@ -12,6 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $cliente_id = $_SESSION['cliente_id']; // Assume cliente_id is stored in session
   $producto_id = $_POST['producto_id'];
   $cantidad = $_POST['cantidad'];
+  $accion = $_POST['accion'];
   
   try {
       require_once 'conexion.php'; 
@@ -38,13 +39,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         die($return_data);
       }
       
-      if(!$item_carrito){
+      if(!$item_carrito && $accion == "agregar_producto"){
         $stmt = makeQuery($pdo, 
                     "INSERT INTO items_carrito (carrito_id, producto_id, cantidad) VALUES (?, ?, ?)", 
                     [$carrito_id, $producto_id, $cantidad]);
 
         
-      }elseif ($item_carrito && $item_carrito['cantidad'] + $cantidad > $producto['cantidad_total']){
+      }elseif(!$item_carrito && $accion == "eliminar_producto"){
+          $return_data = json_encode(array(
+            "status" => "failed",
+            "message" => "No dispones de productos en carrito.",
+        ));
+        // $pdo = null;
+        $stmt = null;
+        die($return_data);
+
+        
+      } elseif ($item_carrito && $accion == "eliminar_producto" && $item_carrito['cantidad'] <= $cantidad){
+        // Update cantidad
+        $stmt = makeQuery($pdo, 
+                "DELETE FROM items_carrito WHERE id = ?", 
+                [$item_carrito["id"]]);
+        $stmt = null;
+        header('Content-Type: application/json');
+        $return_data = json_encode(array(
+            "status" => "success",
+            "message" => "Producto eliminado con exito.",
+        ));
+        die($return_data);
+
+      } elseif ($item_carrito && $accion == "agregar_producto" && $item_carrito['cantidad'] + $cantidad > $producto['cantidad_total']){
 
         $return_data = json_encode(array(
             "status" => "failed",
@@ -53,6 +77,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // $pdo = null;
         $stmt = null;
         die($return_data);
+
+      }elseif ($item_carrito && $accion == "eliminar_producto" && $item_carrito['cantidad'] + $cantidad > $producto['cantidad_total']){
+
+        // Update cantidad
+        $stmt = makeQuery($pdo, 
+                "UPDATE items_carrito SET cantidad = cantidad - ? WHERE carrito_id = ? AND producto_id = ?", 
+                [$producto['cantidad_total'], $carrito_id, $producto_id]);
+
+      } elseif ($item_carrito && $accion == "eliminar_producto" && $item_carrito['cantidad'] + $cantidad <= $producto['cantidad_total']){
+
+        // Update cantidad
+        $stmt = makeQuery($pdo, 
+                "UPDATE items_carrito SET cantidad = cantidad - ? WHERE carrito_id = ? AND producto_id = ?", 
+                [$cantidad, $carrito_id, $producto_id]);
 
       } else{
         // Update cantidad
