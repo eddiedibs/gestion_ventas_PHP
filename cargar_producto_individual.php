@@ -9,10 +9,9 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
     try {
         require_once 'conexion.php'; 
         $id_producto = $_GET['id']; // Make sure to validate/sanitize this input        $query = "SELECT * FROM productos;";
-        $query = "SELECT cantidad_total FROM productos WHERE id = :id";
-        $stmt = $pdo->prepare($query);
-        $stmt->bindParam(':id', $id_producto, PDO::PARAM_INT);
-        $stmt->execute();
+        $stmt = makeQuery($pdo, 
+                    "SELECT cantidad_total FROM productos WHERE id = ?",
+                    [$id_producto]);
         
         $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
         $producto_cantidad_disponible = $resultado['cantidad_total'];
@@ -28,7 +27,9 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         // header("Location: ./index.php");
 
     } catch (PDOException $e){
-        $return_data = json_encode(array("status" => "failed", "message" => "ERRORRRRR"));
+        require_once 'error_handler.php'; 
+        $error_msg = handleError($e->getCode(), $e->getMessage());
+        $return_data = json_encode(array("status" => "failed", "message" => $error_msg));
         die($return_data);
     }
 

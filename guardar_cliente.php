@@ -18,6 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         "telefono" => $telefono,
     );
 
+
     $error_msg = handleValidation("cliente", $data_to_validate);
     if ($error_msg != ""){
         $return_data = json_encode(array("status" => "failed", "message" => $error_msg));
@@ -28,15 +29,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt = makeQuery($pdo, 
                 "INSERT INTO clientes (nombre, cedula_rif, telefono, direccion) VALUES (?,?,?,?);", 
                 [$nombre,$cedula_rif,$telefono,$direccion]);
-        
-        $pdo = null;
-        $stmt = null;
+        $cliente_id = $pdo->lastInsertId();
+
         header('Content-Type: application/json');
         $return_data = json_encode(array(
             "status" => "success",
             "message" => "Cliente '$cedula_rif' creado exitosamente."
         ));
+        // Create new cart
+        makeQuery($pdo, 
+                "INSERT INTO carritos (cliente_id) VALUES (?)",
+                [$cliente_id]);
+        $carrito_id = $pdo->lastInsertId();
+        $_SESSION['cliente_id'] = $cliente_id; // Assume cliente_id is stored in session
+        $_SESSION['carrito_id'] = $carrito_id; // Assume cliente_id is stored in session
         $_SESSION['cedula_rif'] = $cedula_rif;
+        $pdo = null;
+        $stmt = null;
         die($return_data);
         // header("Location: ./index.php");
 

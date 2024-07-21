@@ -49,6 +49,9 @@
             <label for="cantidad">Cantidad:</label>
             <input type="number" class="form-control" id="cantidad" name="cantidad" min="1" required>
         </div>
+    
+        <!-- Quantity Up Button -->
+
         <button type="button" class="btn btn-primary" id="agregar_producto">Agregar Producto</button>
     </form>
 
@@ -62,7 +65,7 @@
                 <th>Cantidad</th>
                 <th>Precio Base</th>
                 <th>Descuento</th>
-                <th>Subtotal</th>
+                <th>Subtotal (USD)</th>
             </tr>
         </thead>
         <tbody id="lista_productos">
@@ -74,8 +77,9 @@
 
     <!-- Mostrar total de la venta -->
     <div class="form-group">
-        <label for="subtotal">Subtotal:</label>
+        <label for="subtotal">Subtotal: <del id="sin_descuento" readonly></del></label>
         <input type="text" class="form-control" id="subtotal" readonly>
+        
     </div>
     <div class="form-group">
         <label for="impuesto">IVA (16%):</label>
@@ -148,15 +152,16 @@ $(document).ready(function() {
                 // Always make the message visible
                 $('#messageContainer').removeClass('d-none');
 
-                // Initialize the Bootstrap Alert component
-                // var messageAlert = new bootstrap.Alert(document.getElementById('messageContainer'));
 
                 // Set up a timeout to dismiss the message after 3 seconds
                 setTimeout(function() {
                     $('#messageContainer').addClass('d-none');
                     $('#messageContainer').removeClass('alert-success');
                     $('#messageContainer').removeClass('alert-danger');
-                }, 5000);
+                    if (jsonResponse.status === 'success'){
+                        obtenerProductos();
+                    }
+                }, 2000);
 
             }
         });
@@ -203,32 +208,83 @@ $(document).ready(function() {
                     $('#messageContainer').addClass('d-none');
                     $('#messageContainer').removeClass('alert-success');
                     $('#messageContainer').removeClass('alert-danger');
+                    if (jsonResponse.status === 'success'){
+                        obtenerProductos();
+                    }
                 }, 5000);
 
             }
         });
     });
 
+
+    // Prevent typing in the input field
+    $('#cantidad').on('keydown', function(e) {
+        e.preventDefault();
+    });
+
+    $('#producto').on('change', function() {
+        var producto_id = $(this).val();
+        console.log( producto_id );
+        $.get('cargar_producto_individual.php', { id: producto_id }, function(data) {
+            $('#cantidad').attr('max', data.producto_cantidad_disponible); // Update the max attribute
+            if (data.producto_cantidad_disponible < $('#cantidad').val()){
+                $('#cantidad').val(`${data.producto_cantidad_disponible}`);
+            };
+        });
+    });
+
+
     $('#agregar_producto').on('click', function(e) {
         e.preventDefault();
         // Agregar producto a la lista de productos
         var producto_id = $('#producto').val();
         var cantidadIngresada = $("#cantidad").val(); // Obtener la cantidad ingresada por el usuario
-        var cantidadDisponible = "";
-        console.log(producto_id);
-        console.log(cantidadIngresada);
-        $.get('cargar_producto_individual.php', { id: producto_id }, function(data) {
-            console.log(data); // Process the returned data
-            cantidadDisponible = data.producto_cantidad_disponible;
-            $('#cantidad').attr('max', data.producto_cantidad_disponible); // Update the max attribute
+
+        $.post('agregar_producto.php', { producto_id: producto_id, cantidad: cantidadIngresada }, function(_, _, xhr) {
+            console.log(xhr.responseText);
+            if (xhr.status === 200) {
+                // Parse the response text to JSON
+                var jsonResponse = JSON.parse(xhr.responseText);
+                console.log(jsonResponse);
+                // Assuming the response contains a 'status' field indicating success
+                if (jsonResponse.status === 'success') {
+                    // Always make the message visible
+                    $('#messageContainer').removeClass('d-none');
+                    // Update the message content and remove 'd-none' class for visibility
+                    $('#messageContainer').text(jsonResponse.message);
+                    $('#messageContainer').addClass('alert-success');
+                    // Set up a timeout to dismiss the message after 3 seconds
+                    setTimeout(function() {
+                        $('#messageContainer').addClass('d-none');
+                        $('#messageContainer').removeClass('alert-success');
+                        $('#messageContainer').removeClass('alert-danger');
+                        obtenerProductos();
+
+                    }, 1000);
+                } else {
+                    // Always make the message visible
+                    $('#messageContainer').removeClass('d-none');
+                    // Update the message content and style for error
+                    $('#messageContainer').text(jsonResponse.message);
+                    $('#messageContainer').addClass('alert-danger');
+                    setTimeout(function() {
+                        $('#messageContainer').addClass('d-none');
+                        $('#messageContainer').removeClass('alert-success');
+                        $('#messageContainer').removeClass('alert-danger');
+                        obtenerProductos();
+
+                    }, 3000);
+                }
+
+
+
+
+
+            }
 
         });
-        $.post('agregar_producto.php', { producto_id: producto_id, cantidad: cantidadIngresada }, function(data) {
-            console.log(data); // Process the returned data
-            cantidadDisponible = data.producto_cantidad_disponible;
-            $('#cantidad').attr('max', data.producto_cantidad_disponible); // Update the max attribute
-
-        });
+        
         
 
 
@@ -261,21 +317,64 @@ function cargarProductos() {
             // Append the option to the select
             $('#producto').append(option);
         }
+        var producto_id = $("#producto").val();
+        $.get('cargar_producto_individual.php', { id: producto_id }, function(data) {
+            $('#cantidad').attr('max', data.producto_cantidad_disponible); // Update the max attribute
+
+        });
     });
+
 }
 
 function obtenerProductos() {
-    var productos = [];
-    $('#lista_productos tr').each(function() {
-        var producto = {
-            id: $(this).find('.producto_id').val(),
-            cantidad: $(this).find('.cantidad').val(),
-            precio: $(this).find('.precio').val(),
-            descuento: $(this).find('.descuento').val()
-        };
-        productos.push(producto);
-    });
-    return productos;
+    $.get('obtener_items_carrito.php', function(_, _, xhr) {
+            // Clear any existing options
+            $('#lista_productos').empty();
+            
+            if (xhr.status === 200) {
+                // Parse the response text to JSON
+                var jsonResponse = JSON.parse(xhr.responseText);
+                console.log(jsonResponse);
+
+                // Assuming the response contains a 'status' field indicating success
+                if (jsonResponse.status === 'success') {
+                    // Update the message content and remove 'd-none' class for visibility
+                    $('#messageContainer').text(jsonResponse.message);
+                    $('#messageContainer').addClass('alert-success');
+                    // Assume data is a JSON array of product objects
+                    for(let i = 0; i < jsonResponse.productos.length; i++) {
+                        let product = jsonResponse.productos[i];
+                        let row = $('<tr></tr>');
+                        row.append($('<td></td>').text(product.nombre));
+                        row.append($('<td></td>').text(product.cantidad));
+                        row.append($('<td></td>').text(product.precio_base));
+                        row.append($('<td></td>').text(product.descuento));
+                        row.append($('<td></td>').text(product.subtotal));
+                        $('#lista_productos').append(row);
+                    }
+                } else {
+                    // Update the message content and style for error
+                    console.log(jsonResponse.message);
+                    $('#messageContainer').text(jsonResponse.message);
+                    $('#messageContainer').addClass('alert-danger');
+                }
+
+                // Always make the message visible
+                $('#messageContainer').removeClass('d-none');
+
+                // Set up a timeout to dismiss the message after 3 seconds
+                setTimeout(function() {
+                    $('#messageContainer').addClass('d-none');
+                    $('#messageContainer').removeClass('alert-success');
+                    $('#messageContainer').removeClass('alert-danger');
+                }, 7000);
+
+            }
+
+
+
+        });
+    // return productos;
 }
 
 function actualizarTotal() {

@@ -9,7 +9,10 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
     try {
         require_once 'conexion.php'; 
-        $cedula_rif = $_GET['cedula_rif']; // Make sure to validate/sanitize this input        $query = "SELECT * FROM productos;";
+        
+
+        $cedula_rif = $_GET['cedula_rif'];
+
         $cliente_info_stmt = makeQuery($pdo, 
                         "SELECT * FROM clientes WHERE cedula_rif = ?",
                         [$cedula_rif]);
@@ -23,6 +26,22 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             ));
             die($return_data);
         }else{
+            // Check if cart exists for user
+            $stmt = makeQuery($pdo, 
+                        "SELECT id FROM carritos WHERE cliente_id = ?",
+                        [$cliente_info["id"]]);
+            $cart = $stmt->fetch();
+
+            if ($cart) {
+                $carrito_id = $cart['id'];
+            } else {
+                // Create new cart
+                makeQuery($pdo, 
+                        "INSERT INTO carritos (cliente_id) VALUES (?)",
+                        [$cliente_info["id"]]);
+                $carrito_id = $pdo->lastInsertId();
+            }
+            $_SESSION['carrito_id'] = $carrito_id; // Assume cliente_id is stored in session
             header('Content-Type: application/json');
             $return_data = json_encode(array(
                 "status" => "success",
