@@ -23,7 +23,9 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         // header("Location: ./index.php");
 
     } catch (PDOException $e){
-        $return_data = json_encode(array("status" => "failed", "message" => "ERRORRRRR"));
+        require_once 'error_handler.php'; 
+        $error_msg = handleError($e->getCode());
+        $return_data = json_encode(array("status" => "failed", "message" => $error_msg));
         die($return_data);
     }
 

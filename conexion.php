@@ -1,5 +1,6 @@
 <?php
 
+# Datos de base de datos de prueba (EN CASO REAL UTILIZAR VARIABLES DE ENTORNO)
 $dsn = "mysql:host=localhost;dbname=gestion_ventas";
 $dbusername = "root";
 $dbpassword = "123456";

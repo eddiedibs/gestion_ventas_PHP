@@ -1,6 +1,4 @@
 <?php
-
-
 // Enable error reporting
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -29,14 +27,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 "SELECT id, producto_id, cantidad FROM items_carrito WHERE carrito_id = ? AND producto_id = ?", 
                 [$carrito_id, $producto_id]);
       $item_carrito = $stmt->fetch();
+
+      $resp_status = "";
+      $resp_msg = "";
       if ($cantidad > $cantidad_total_producto){
-        $return_data = json_encode(array(
-            "status" => "failed",
-            "message" => "La cantidad del producto ingresado '$nombre_producto' excede la cantidad total existente ($cantidad_total_producto)",
-        ));
-        // $pdo = null;
-        $stmt = null;
-        die($return_data);
+        $resp_status = "failed";
+        $resp_msg = "La cantidad del producto ingresado '$nombre_producto' excede la cantidad total existente ($cantidad_total_producto)";
       }
       
       if(!$item_carrito && $accion == "agregar_producto"){
@@ -44,15 +40,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     "INSERT INTO items_carrito (carrito_id, producto_id, cantidad) VALUES (?, ?, ?)", 
                     [$carrito_id, $producto_id, $cantidad]);
 
-        
+        $resp_status = "success";
+        $resp_msg = "Producto agregado con exito";
+
       }elseif(!$item_carrito && $accion == "eliminar_producto"){
-          $return_data = json_encode(array(
-            "status" => "failed",
-            "message" => "No dispones de productos en carrito.",
-        ));
-        // $pdo = null;
-        $stmt = null;
-        die($return_data);
+        $resp_status = "failed";
+        $resp_msg = "No dispones de productos en carrito.";
 
         
       } elseif ($item_carrito && $accion == "eliminar_producto" && $item_carrito['cantidad'] <= $cantidad){
@@ -60,23 +53,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt = makeQuery($pdo, 
                 "DELETE FROM items_carrito WHERE id = ?", 
                 [$item_carrito["id"]]);
-        $stmt = null;
-        header('Content-Type: application/json');
-        $return_data = json_encode(array(
-            "status" => "success",
-            "message" => "Producto eliminado con exito.",
-        ));
-        die($return_data);
+
+        $resp_status = "success";
+        $resp_msg = "Producto eliminado con exito.";
 
       } elseif ($item_carrito && $accion == "agregar_producto" && $item_carrito['cantidad'] + $cantidad > $producto['cantidad_total']){
 
-        $return_data = json_encode(array(
-            "status" => "failed",
-            "message" => "La cantidad del producto ingresado '$nombre_producto' excede la cantidad total existente ($cantidad_total_producto)",
-        ));
-        // $pdo = null;
-        $stmt = null;
-        die($return_data);
+        $resp_status = "failed";
+        $resp_msg = "La cantidad del producto ingresado '$nombre_producto' excede la cantidad total existente ($cantidad_total_producto)";
 
       }elseif ($item_carrito && $accion == "eliminar_producto" && $item_carrito['cantidad'] + $cantidad > $producto['cantidad_total']){
 
@@ -85,26 +69,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 "UPDATE items_carrito SET cantidad = cantidad - ? WHERE carrito_id = ? AND producto_id = ?", 
                 [$producto['cantidad_total'], $carrito_id, $producto_id]);
 
+        $resp_status = "success";
+        $resp_msg = "Producto eliminado con exito.";
+                
       } elseif ($item_carrito && $accion == "eliminar_producto" && $item_carrito['cantidad'] + $cantidad <= $producto['cantidad_total']){
 
         // Update cantidad
         $stmt = makeQuery($pdo, 
                 "UPDATE items_carrito SET cantidad = cantidad - ? WHERE carrito_id = ? AND producto_id = ?", 
                 [$cantidad, $carrito_id, $producto_id]);
+        $resp_status = "success";
+        $resp_msg = "Producto eliminado con exito.";
 
       } else{
         // Update cantidad
         $stmt = makeQuery($pdo, 
                 "UPDATE items_carrito SET cantidad = cantidad + ? WHERE carrito_id = ? AND producto_id = ?", 
                 [$cantidad, $carrito_id, $producto_id]);
+   
+        $resp_status = "success";
+        $resp_msg = "Producto agregado con exito.";
       }
 
       $pdo = null;
       $stmt = null;
       header('Content-Type: application/json');
       $return_data = json_encode(array(
-          "status" => "success",
-          "message" => "Producto agregado con exito.",
+          "status" => $resp_status,
+          "message" => $resp_msg,
       ));
       die($return_data);
       } catch (PDOException $e) {

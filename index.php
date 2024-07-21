@@ -9,7 +9,7 @@
 <body>
 <div id="messageContainer" class="fixed-top alert alert-success d-none" role="alert">
 </div>
-<div class="container">
+<div class="container card shadow-sm p-5">
     <h2>Registro de Venta</h2>
 
     <!-- Formulario para la información del cliente -->
@@ -39,6 +39,12 @@
     <!-- Formulario para agregar productos a la venta -->
     <form id="form_producto">
         <div class="form-group">
+            <label for="vendedor">Vendedor:</label>
+            <select class="form-control" id="vendedor" name="vendedor" required>
+                <!-- Los vendedores se llenarán dinámicamente desde la base de datos -->
+            </select>
+        </div>
+        <div class="form-group">
             <label for="producto">Producto:</label>
             <select class="form-control" id="producto" name="producto" required>
                 <!-- Los productos se llenarán dinámicamente desde la base de datos -->
@@ -49,8 +55,6 @@
             <input type="number" class="form-control" id="cantidad" name="cantidad" min="1" required>
         </div>
     
-        <!-- Quantity Up Button -->
-
         <button class="btn-producto btn btn-primary" type="button" id="agregar_producto">Agregar Producto</button>
         <button class="btn-producto btn btn-danger" type="button" id="eliminar_producto">Eliminar Producto</button>
     </form>
@@ -91,13 +95,44 @@
         <input type="text" class="form-control" id="total_input" readonly>
     </div>
 
-    <button type="button" class="btn btn-success" id="finalizar_venta">Finalizar Venta</button>
+    <div class="d-flex justify-content-center align-items-center">
+        <button type="button" class="btn btn-success mr-3" id="finalizar_venta">Finalizar Venta</button>
+        <button type="button" class="btn btn-primary ml-3" id="estadisticas_vista">Ver estadisticas</button>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="estadisticasModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Estadísticas</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <label for="vendedor">Vendedor:</label>
+            <select class="form-control" id="vendedor_modal" name="vendedor" required>
+                <!-- Los vendedores se llenarán dinámicamente desde la base de datos -->
+            </select>
+        <!-- Aquí van las estadísticas. -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
 // Función para cargar productos desde la base de datos
 $(document).ready(function() {
+    $('#estadisticas_vista').click(function() {
+      $('#estadisticasModal').modal('show');
+    });
     cargarProductos();
+    cargarVendedores("#vendedor");
+    cargarVendedores("#vendedor_modal");
     $('#subtotal_input').val("");
     $('#impuesto_input').val("");
     $('#total_input').val("");
@@ -259,7 +294,19 @@ $(document).ready(function() {
                         obtenerProductos();
 
                     }, 1000);
-                } else {
+                } else if (jsonResponse.status === 'failed' && 'Existe un registro duplicado o inexistente.'){
+                    // Always make the message visible
+                    $('#messageContainer').removeClass('d-none');
+                    // Update the message content and style for error
+                    $('#messageContainer').text(jsonResponse.message);
+                    $('#messageContainer').addClass('alert-danger');
+                    setTimeout(function() {
+                        $('#messageContainer').addClass('d-none');
+                        $('#messageContainer').removeClass('alert-success');
+                        $('#messageContainer').removeClass('alert-danger');
+
+                    }, 3000);
+                }else {
                     // Always make the message visible
                     $('#messageContainer').removeClass('d-none');
                     // Update the message content and style for error
@@ -319,6 +366,21 @@ function cargarProductos() {
             $('#cantidad').attr('max', data.producto_cantidad_disponible); // Update the max attribute
 
         });
+    });
+
+}
+function cargarVendedores(vendedorId) {
+    $.get('cargar_vendedores.php', function(data) {
+        // Clear any existing options
+        $(vendedorId).empty();
+        
+        // Iterate over the products array
+        for(let i = 0; i < data.vendedores.length; i++) {
+            // Create a new option element
+            let option = $('<option></option>').val(data.vendedores[i].id).text(data.vendedores[i].nombre);
+            // Append the option to the select
+            $(vendedorId).append(option);
+        }
     });
 
 }

@@ -11,6 +11,19 @@ CREATE TABLE clientes (
     direccion TEXT
 );
 
+-- Crear la tabla de vendedores
+CREATE TABLE vendedores (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    email VARCHAR(100) UNIQUE
+);
+
+-- Insertar vendedores de prueba (EN CASO DE PRODUCCION SUBIR DESDE PAGINA ADMIN)
+INSERT INTO vendedores (nombre, email) VALUES
+('La Pollera', 'lapollera@email.com'),
+('Masquepollo', 'masquepollo@email.com'),
+('Farmatodo', 'farmatodo@email.com');
+
 -- Crear la tabla de productos
 CREATE TABLE productos (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -22,7 +35,7 @@ CREATE TABLE productos (
     tiene_iva BOOLEAN
 );
 
--- Insertar productos de prueba
+-- Insertar productos de prueba (EN CASO DE PRODUCCION SUBIR DESDE PAGINA ADMIN)
 INSERT INTO productos (nombre, categoria, precio_base, cantidad_total, descuento, tiene_iva) VALUES
 ('Desengrasante bicarbonato naranja limon ajax 1L', 'Limpieza de cocina', 5.42, 50, 0.05, TRUE),
 ('Detergente fragancia floral multi clean 400gr 1x30 (l391) polar', 'Lavandería', 1.50, 30, 0.10, TRUE),
@@ -78,19 +91,14 @@ CREATE TABLE IF NOT EXISTS items_pedido (
 
 
 
--- Crear la tabla de vendedores
-CREATE TABLE vendedores (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(255) NOT NULL,
-    email VARCHAR(100) UNIQUE
-);
+
 
 -- Crear la tabla de ventas
 CREATE TABLE ventas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     cliente_id INT,
     vendedor_id INT,
-    fecha DATE NOT NULL,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     subtotal DECIMAL(10, 2) NOT NULL,
     impuesto DECIMAL(10, 2) NOT NULL,
     total DECIMAL(10, 2) NOT NULL,

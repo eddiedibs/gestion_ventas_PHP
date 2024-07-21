@@ -1,13 +1,39 @@
 <?php
-include 'conexion.php';
+// Enable error reporting
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-$sql = "SELECT * FROM vendedores";
-$result = mysqli_query($conn, $sql);
+if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
-while ($row = mysqli_fetch_assoc($result)) {
-    echo "<option value='".$row['id']."'>".$row['nombre']."</option>";
+    try {
+        require_once 'conexion.php'; 
+        $query = "SELECT * FROM vendedores;";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute();
+        header('Content-Type: application/json');
+        $return_data = json_encode(array(
+            "vendedores" => $stmt->fetchAll(),
+        ));
+            
+        $pdo = null;
+        $stmt = null;
+
+        die($return_data);
+        // header("Location: ./index.php");
+
+    } catch (PDOException $e){
+        require_once 'error_handler.php'; 
+        $error_msg = handleError($e->getCode());
+        $return_data = json_encode(array("status" => "failed", "message" => $error_msg));
+        die($return_data);
+    }
+
+
+} else{
+    header("Location: ./index.php");
+
 }
 
-mysqli_close($conn);
 ?>
 

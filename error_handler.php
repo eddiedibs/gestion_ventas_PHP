@@ -16,15 +16,10 @@ function handleError($errorCode, $errorMessage) {
                 $message .= "El registro $captured_value esta duplicado.";
                 break;
             } else {
-                $message .= "Existe un registro duplicado.";
+                $message .= "Existe un registro duplicado o inexistente.";
+                break;
             }
 
-        case 'database_error':
-            $message .= " An error occurred while interacting with the database.";
-            break;
-        case 'file_not_found':
-            $message .= " The requested file could not be found.";
-            break;
         default:
             $message .= $errorCode." ".$errorMessage;
             break;
