@@ -5,15 +5,15 @@
 ## Índice
 1. Introducción
 2. Instalación y Configuración
-   2.1. Requisitos Previos
-   2.2. Instalación
-   2.3. Ejecución
+2.1. Requisitos Previos
+2.2. Instalación
+2.3. Ejecución
 3. Estructura del Proyecto
-   3.1. Algunos Archivos Principales
+3.1. Algunos Archivos Principales
 4. Uso de la Plataforma
-   4.1. Secciones Principales
-   4.2. Funcionalidades
-   4.3. Consideraciones
+4.1. Secciones Principales
+4.2. Funcionalidades
+4.3. Consideraciones
 6. Capturas
 
 ## 1. Introducción
