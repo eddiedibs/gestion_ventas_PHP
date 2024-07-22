@@ -24,29 +24,48 @@ INSERT INTO vendedores (nombre, email) VALUES
 ('Masquepollo', 'masquepollo@email.com'),
 ('Farmatodo', 'farmatodo@email.com');
 
+
+-- Crear la tabla de productos
+CREATE TABLE categorias (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL
+
+);
+
+-- Insertar categorias de prueba (EN CASO DE PRODUCCION SUBIR DESDE PAGINA ADMIN)
+INSERT INTO categorias (nombre) VALUES
+('Limpieza de cocina'),
+('Limpieza de bano'),
+('Limpieza general'),
+('Lavanderia');
+
+
 -- Crear la tabla de productos
 CREATE TABLE productos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
-    categoria VARCHAR(100),
     precio_base DECIMAL(10, 2) NOT NULL,
     cantidad_total Integer(10) NOT NULL,
     descuento DECIMAL(10, 2) DEFAULT 0.00,
-    tiene_iva BOOLEAN
+    tiene_iva BOOLEAN,
+    categoria_id INT NOT NULL,
+    FOREIGN KEY (categoria_id) REFERENCES categorias(id)
 );
 
 -- Insertar productos de prueba (EN CASO DE PRODUCCION SUBIR DESDE PAGINA ADMIN)
-INSERT INTO productos (nombre, categoria, precio_base, cantidad_total, descuento, tiene_iva) VALUES
-('Desengrasante bicarbonato naranja limon ajax 1L', 'Limpieza de cocina', 5.42, 50, 0.05, TRUE),
-('Detergente fragancia floral multi clean 400gr 1x30 (l391) polar', 'Lavandería', 1.50, 30, 0.10, TRUE),
-('Lavaplatos en crema limon axion 450 gr', 'Limpieza de cocina', 4.53, 25, 0.00, FALSE),
-('Esponja multiuso izy clean', 'Limpieza de cocina', 1.39, 35, 0.20, TRUE),
-('Desifectante fresh ivon 1000ml', 'Limpieza general', 3.73, 20, 0.15, FALSE),
-('Lavaplatos liquido salt citrus ajax ultra 366ml (impor)', 'Limpieza de cocina', 3.15, 45, 0.08, FAlse),
-('Esponja doble uso slim limpia sol (3 pack) ', 'Limpieza de cocina', 2.20, 26, 0.00, TRUE),
-('Destapador de cañeria diablo rojo pino 1l', 'Limpieza de baño', 8.84, 40, 0.10, FALSE),
-('Jabon en polvo fragancia citrica multi clean 5 kg (l384)', 'Lavandería', 12.53, 35, 0.05, TRUE),
-('Lavaplatos en crema multiuso axion 450 gr', 'Limpieza de cocina', 4.83, 30, 0.00, FALSE);
+INSERT INTO productos (nombre, precio_base, cantidad_total, descuento, tiene_iva, categoria_id) VALUES
+('Desengrasante bicarbonato naranja limon ajax 1L', 5.42, 50, 0.05, TRUE, 1),
+('Detergente fragancia floral multi clean 400gr 1x30 (l391) polar', 1.50, 30, 0.10, TRUE, 4),
+('Lavaplatos en crema limon axion 450 gr', 4.53, 25, 0.00, FALSE, 1),
+('Esponja multiuso izy clean', 1.39, 35, 0.20, TRUE, 1),
+('Desifectante fresh ivon 1000ml', 3.73, 20, 0.15, FALSE, 3),
+('Lavaplatos liquido salt citrus ajax ultra 366ml (impor)', 3.15, 45, 0.08, FALSE, 1),
+('Esponja doble uso slim limpia sol (3 pack) ', 2.20, 26, 0.00, TRUE, 1),
+('Destapador de cañeria diablo rojo pino 1l', 8.84, 40, 0.10, FALSE, 2),
+('Jabon en polvo fragancia citrica multi clean 5 kg (l384)', 12.53, 35, 0.05, TRUE, 4),
+('Lavaplatos en crema multiuso axion 450 gr', 4.83, 30, 0.00, FALSE, 1);
+
+
 
 -- Crear la tabla de carrito
 CREATE TABLE IF NOT EXISTS carritos (
@@ -68,26 +87,26 @@ CREATE TABLE IF NOT EXISTS items_carrito (
 );
 
 -- Crear la tabla de pedidos
-CREATE TABLE IF NOT EXISTS pedidos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    cliente_id INT NOT NULL,
-    total DECIMAL(10, 2) NOT NULL,
-    status ENUM('pending', 'completed', 'cancelled') NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (cliente_id) REFERENCES clientes(id)
-);
+-- CREATE TABLE IF NOT EXISTS pedidos (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
+--     cliente_id INT NOT NULL,
+--     total DECIMAL(10, 2) NOT NULL,
+--     status ENUM('pending', 'completed', 'cancelled') NOT NULL,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+-- );
 
--- Crear la tabla de items de pedidos
-CREATE TABLE IF NOT EXISTS items_pedido (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    pedido_id INT NOT NULL,
-    producto_id INT NOT NULL,
-    cantidad INT NOT NULL,
-    precio DECIMAL(10, 2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (pedido_id) REFERENCES pedidos(id),
-    FOREIGN KEY (producto_id) REFERENCES productos(id)
-);
+-- -- Crear la tabla de items de pedidos
+-- CREATE TABLE IF NOT EXISTS items_pedido (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
+--     pedido_id INT NOT NULL,
+--     producto_id INT NOT NULL,
+--     cantidad INT NOT NULL,
+--     precio DECIMAL(10, 2) NOT NULL,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     FOREIGN KEY (pedido_id) REFERENCES pedidos(id),
+--     FOREIGN KEY (producto_id) REFERENCES productos(id)
+-- );
 
 
 
@@ -107,7 +126,7 @@ CREATE TABLE ventas (
 );
 
 -- Crear la tabla de detalles de ventas
-CREATE TABLE detalles_ventas (
+CREATE TABLE productos_ventas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     venta_id INT,
     producto_id INT,

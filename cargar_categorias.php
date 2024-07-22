@@ -8,12 +8,12 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
     try {
         require_once 'conexion.php'; 
-        $query = "SELECT * FROM vendedores;";
-        $stmt = $pdo->prepare($query);
-        $stmt->execute();
+        $stmt = makeQuery($pdo, "SELECT * FROM categorias");
+        $categorias = $stmt->fetchAll();
         header('Content-Type: application/json');
         $return_data = json_encode(array(
-            "vendedores" => $stmt->fetchAll(),
+            "status" => "success",
+            "categorias" => $categorias,
         ));
             
         $pdo = null;

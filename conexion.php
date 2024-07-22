@@ -15,13 +15,14 @@ try{
 };
 
 function makeQuery($pdo, $queryInput, $param = null){
+    $query = $queryInput;
+    $stmt = $pdo->prepare($query);
     if ($param != null){
-        $query = $queryInput;
-        $stmt = $pdo->prepare($query);
         $stmt->execute($param);
         return $stmt;
     } else{
-
+        $stmt->execute();
+        return $stmt;
     }
 
 };

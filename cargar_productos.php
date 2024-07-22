@@ -7,24 +7,27 @@ error_reporting(E_ALL);
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
     try {
-        require_once 'conexion.php'; 
-        $query = "SELECT * FROM productos;";
-        $stmt = $pdo->prepare($query);
-        $stmt->execute();
-        header('Content-Type: application/json');
-        $return_data = json_encode(array(
-            "products" => $stmt->fetchAll(),
-        ));
-            
-        $pdo = null;
-        $stmt = null;
+        if ($_GET["categoria_id"]){
+            $categoria_id = $_GET["categoria_id"];
+            require_once 'conexion.php'; 
+            $stmt = makeQuery($pdo, "SELECT * FROM productos WHERE categoria_id = ?;",
+                            [$categoria_id]);
+            header('Content-Type: application/json');
+            $return_data = json_encode(array(
+                "status" => "success",
+                "products" => $stmt->fetchAll(),
+            ));
+                
+            $pdo = null;
+            $stmt = null;
+    
+            die($return_data);
+        }
 
-        die($return_data);
-        // header("Location: ./index.php");
 
     } catch (PDOException $e){
         require_once 'error_handler.php'; 
-        $error_msg = handleError($e->getCode());
+        $error_msg = handleError($e->getCode(), $e->getMessage());
         $return_data = json_encode(array("status" => "failed", "message" => $error_msg));
         die($return_data);
     }

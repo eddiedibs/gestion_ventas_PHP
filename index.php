@@ -45,6 +45,12 @@
             </select>
         </div>
         <div class="form-group">
+            <label for="categoria">Categoria:</label>
+            <select class="form-control" id="categoria" name="categoria" required>
+                <!-- Las categorias se llenarán dinámicamente desde la base de datos -->
+            </select>
+        </div>
+        <div class="form-group">
             <label for="producto">Producto:</label>
             <select class="form-control" id="producto" name="producto" required>
                 <!-- Los productos se llenarán dinámicamente desde la base de datos -->
@@ -130,12 +136,13 @@ $(document).ready(function() {
     $('#estadisticas_vista').click(function() {
       $('#estadisticasModal').modal('show');
     });
-    cargarProductos();
+    $('#categoria').ready(async function(){
+        await cargarCategorias();
+        cargarProductos($('#categoria').val());
+    })
     cargarVendedores("#vendedor");
     cargarVendedores("#vendedor_modal");
-    $('#subtotal_input').val("");
-    $('#impuesto_input').val("");
-    $('#total_input').val("");
+    limpiarAll();
 
     $('#seleccionar_cliente').on('click', function() {
         // Guardar cliente usando AJAX
@@ -173,16 +180,14 @@ $(document).ready(function() {
                 // Assuming the response contains a 'status' field indicating success
                 if (jsonResponse.status === 'success') {
                     // Update the message content and remove 'd-none' class for visibility
-                    $('#messageContainer').text(jsonResponse.message);
-                    $('#messageContainer').addClass('alert-success');
+                    
+                    mostrarMensaje(jsonResponse.message, "success", 1000);
                     $('#nombre').val(jsonResponse.cliente_info.nombre);
                     $('#telefono').val(jsonResponse.cliente_info.telefono);
                     $('#direccion').val(jsonResponse.cliente_info.direccion);
                     
                 } else {
-                    // Update the message content and style for error
-                    $('#messageContainer').text(jsonResponse.message);
-                    $('#messageContainer').addClass('alert-danger');
+                    mostrarMensaje(jsonResponse.message, "failed", 1000);
                 }
 
                 // Always make the message visible
@@ -223,13 +228,11 @@ $(document).ready(function() {
 
                 // Assuming the response contains a 'status' field indicating success
                 if (jsonResponse.status === 'success') {
-                    // Update the message content and remove 'd-none' class for visibility
-                    $('#messageContainer').text(jsonResponse.message);
-                    $('#messageContainer').addClass('alert-success');
+                    mostrarMensaje(jsonResponse.message, "success", 1000);
+
                 } else {
                     // Update the message content and style for error
-                    $('#messageContainer').text(jsonResponse.message);
-                    $('#messageContainer').addClass('alert-danger');
+                    mostrarMensaje(jsonResponse.message, "failed", 1000);
                 }
 
                 // Always make the message visible
@@ -268,6 +271,10 @@ $(document).ready(function() {
         });
     });
 
+    $('#categoria').on('change', function() {
+        var categoria_id = $(this).val();
+        cargarProductos(categoria_id);
+    });
 
     $('.btn-producto').on('click', function(e) {
         e.preventDefault();
@@ -281,50 +288,13 @@ $(document).ready(function() {
                 var jsonResponse = JSON.parse(xhr.responseText);
                 // Assuming the response contains a 'status' field indicating success
                 if (jsonResponse.status === 'success') {
-                    // Always make the message visible
-                    $('#messageContainer').removeClass('d-none');
-                    // Update the message content and remove 'd-none' class for visibility
-                    $('#messageContainer').text(jsonResponse.message);
-                    $('#messageContainer').addClass('alert-success');
-                    // Set up a timeout to dismiss the message after 3 seconds
-                    setTimeout(function() {
-                        $('#messageContainer').addClass('d-none');
-                        $('#messageContainer').removeClass('alert-success');
-                        $('#messageContainer').removeClass('alert-danger');
-                        obtenerProductos();
+                    mostrarMensaje(jsonResponse.message, "success", 3000);
+                    obtenerProductos();
 
-                    }, 1000);
-                } else if (jsonResponse.status === 'failed' && 'Existe un registro duplicado o inexistente.'){
-                    // Always make the message visible
-                    $('#messageContainer').removeClass('d-none');
-                    // Update the message content and style for error
-                    $('#messageContainer').text(jsonResponse.message);
-                    $('#messageContainer').addClass('alert-danger');
-                    setTimeout(function() {
-                        $('#messageContainer').addClass('d-none');
-                        $('#messageContainer').removeClass('alert-success');
-                        $('#messageContainer').removeClass('alert-danger');
+                } else {
+                    mostrarMensaje(jsonResponse.message, "failed", 3000);
 
-                    }, 3000);
-                }else {
-                    // Always make the message visible
-                    $('#messageContainer').removeClass('d-none');
-                    // Update the message content and style for error
-                    $('#messageContainer').text(jsonResponse.message);
-                    $('#messageContainer').addClass('alert-danger');
-                    setTimeout(function() {
-                        $('#messageContainer').addClass('d-none');
-                        $('#messageContainer').removeClass('alert-success');
-                        $('#messageContainer').removeClass('alert-danger');
-                        obtenerProductos();
-
-                    }, 3000);
                 }
-
-
-
-
-
             }
 
         });
@@ -334,108 +304,185 @@ $(document).ready(function() {
 
     });
 
-    $('#finalizar_venta').on('click', function() {
+    $('#finalizar_venta').on('click', async function() {
+        let productos_lista = await obtenerProductos();
         // Finalizar la venta
         var data = {
-            cliente_id: $('#cedula_rif').val(),
-            productos: obtenerProductos(),
-            subtotal: $('#subtotal_input').val(),
-            impuesto: $('#impuesto_input').val(),
-            total: $('#total_input').val()
+            subtotal: parseFloat($('#subtotal_input').val().replace('$', '')),
+            impuesto: parseFloat($('#impuesto_input').val().replace('$', '')),
+            total: parseFloat($('#total_input').val().replace('$', '')),
+            vendedor_id: $('#vendedor').val(),
+            productos: productos_lista
         };
         $.post('finalizar_venta.php', data, function(response) {
-            alert(response);
+            limpiarAll();
         });
     });
 });
 
-function cargarProductos() {
-    $.get('cargar_productos.php', function(data) {
+function mostrarMensaje(mensaje, tipo, delay){
+
+    if (tipo == "failed"){
+        // Always make the message visible
+        $('#messageContainer').removeClass('d-none');
+        // Update the message content and style for error
+        $('#messageContainer').text(mensaje);
+        $('#messageContainer').addClass('alert-danger');
+        setTimeout(function() {
+            $('#messageContainer').addClass('d-none');
+            $('#messageContainer').removeClass('alert-success');
+            $('#messageContainer').removeClass('alert-danger');
+
+        }, delay);
+    } else {
+        // Always make the message visible
+        $('#messageContainer').removeClass('d-none');
+        // Update the message content and remove 'd-none' class for visibility
+        $('#messageContainer').text(mensaje);
+        $('#messageContainer').addClass('alert-success');
+        // Set up a timeout to dismiss the message after 3 seconds
+        setTimeout(function() {
+            $('#messageContainer').addClass('d-none');
+            $('#messageContainer').removeClass('alert-success');
+            $('#messageContainer').removeClass('alert-danger');
+
+        }, delay);
+    }
+
+}
+
+function cargarProductos(categoria_id) {
+    $.get('cargar_productos.php', {categoria_id: categoria_id}, function(_, _, xhr) {
         // Clear any existing options
         $('#producto').empty();
-        
-        // Iterate over the products array
-        for(let i = 0; i < data.products.length; i++) {
-            // Create a new option element
-            let option = $('<option></option>').val(data.products[i].id).text(data.products[i].nombre);
-            // Append the option to the select
-            $('#producto').append(option);
-        }
-        var producto_id = $("#producto").val();
-        $.get('cargar_producto_individual.php', { id: producto_id }, function(data) {
-            $('#cantidad').attr('max', data.producto_cantidad_disponible); // Update the max attribute
+        if (xhr.status === 200) {
+            // Parse the response text to JSON
+            var jsonResponse = JSON.parse(xhr.responseText);
+            // Assuming the response contains a 'status' field indicating success
+            if (jsonResponse.status === 'success') {
+                // Iterate over the products array
+                for(let i = 0; i < jsonResponse.products.length; i++) {
+                    // Create a new option element
+                    let option = $('<option></option>').val(jsonResponse.products[i].id).text(jsonResponse.products[i].nombre);
+                    // Append the option to the select
+                    $('#producto').append(option);
+                }
+                var producto_id = $("#producto").val();
+                $.get('cargar_producto_individual.php', { id: producto_id }, function(data) {
+                    $('#cantidad').attr('max', data.producto_cantidad_disponible); // Update the max attribute
 
-        });
+                });
+
+            } else {
+                mostrarMensaje(jsonResponse.message, "failed", 3000);
+
+            }
+        }
+
     });
 
 }
-function cargarVendedores(vendedorId) {
+
+async function cargarCategorias() {
+    const jsonResponse = await fetchUtil("cargar_categorias");    
+
+    // Clear any existing options
+    $('#categoria').empty();
+    // Iterate over the products array
+    for(let i = 0; i < jsonResponse.categorias.length; i++) {
+        // Create a new option element
+        let categoria_option = $('<option></option>').val(jsonResponse.categorias[i].id).text(jsonResponse.categorias[i].nombre);
+        // Append the option to the select
+        $('#categoria').append(categoria_option);
+    }
+    // var producto_id = $("#producto").val();
+    // $.get('cargar_producto_individual.php', { id: producto_id }, function(data) {
+    //     $('#cantidad').attr('max', data.producto_cantidad_disponible); // Update the max attribute
+
+    // });
+
+}
+
+function limpiarAll() {
+    $('#subtotal_input').val("");
+    $('#impuesto_input').val("");
+    $('#total_input').val("");
+    $('#lista_productos').empty();
+}
+function cargarVendedores(vendedor_id) {
     $.get('cargar_vendedores.php', function(data) {
         // Clear any existing options
-        $(vendedorId).empty();
+        $(vendedor_id).empty();
         
         // Iterate over the products array
         for(let i = 0; i < data.vendedores.length; i++) {
             // Create a new option element
             let option = $('<option></option>').val(data.vendedores[i].id).text(data.vendedores[i].nombre);
             // Append the option to the select
-            $(vendedorId).append(option);
+            $(vendedor_id).append(option);
         }
     });
 
 }
 
-function obtenerProductos() {
-    $.get('obtener_items_carrito.php', function(_, _, xhr) {
-            // Clear any existing options
-            $('#lista_productos').empty();
-
-            
+function fetchUtil(file) {
+    return new Promise((resolve, reject) => {
+        $.get(`${file}.php`, function(_, _, xhr) {
             if (xhr.status === 200) {
                 // Parse the response text to JSON
                 var jsonResponse = JSON.parse(xhr.responseText);
+                resolve(jsonResponse);
 
-                // Assuming the response contains a 'status' field indicating success
-                if (jsonResponse.status === 'success') {
-                    // Update the message content and remove 'd-none' class for visibility
-                    $('#messageContainer').text(jsonResponse.message);
-                    $('#messageContainer').addClass('alert-success');
-                    // Assume data is a JSON array of product objects
-                    for(let i = 0; i < jsonResponse.productos.length; i++) {
-                        let product = jsonResponse.productos[i];
-                        let row = $('<tr></tr>');
-                        row.append($('<td></td>').text(product.nombre));
-                        row.append($('<td></td>').text(product.cantidad));
-                        row.append($('<td></td>').text(product.precio_base));
-                        row.append($('<td></td>').text(product.descuento));
-                        row.append($('<td></td>').text(product.IVA));
-                        row.append($('<td></td>').text(product.subtotal));
-                        $('#lista_productos').append(row);
-                    }
-                    $('#subtotal_input').val(jsonResponse.subtotal_final);
-                    $('#impuesto_input').val(jsonResponse.total_iva);
-                    $('#total_input').val(jsonResponse.total);
-                } else {
-                    // Update the message content and style for error
-                    $('#messageContainer').text(jsonResponse.message);
-                    $('#messageContainer').addClass('alert-danger');
-                }
-
-                // Always make the message visible
-                $('#messageContainer').removeClass('d-none');
-
-                // Set up a timeout to dismiss the message after 3 seconds
-                setTimeout(function() {
-                    $('#messageContainer').addClass('d-none');
-                    $('#messageContainer').removeClass('alert-success');
-                    $('#messageContainer').removeClass('alert-danger');
-                }, 7000);
-
+            } else {
+                reject('Failed to fetch data');
             }
-
-
-
         });
+    });
+}
+
+async function obtenerProductos() {
+    const jsonResponse = await fetchUtil("obtener_items_carrito");    
+    // Clear any existing options
+    $('#lista_productos').empty();
+
+    // Assuming the response contains a 'status' field indicating success
+    if (jsonResponse.status === 'success') {
+        // Update the message content and remove 'd-none' class for visibility
+        mostrarMensaje(jsonResponse.message, "success", 3000);
+        // Assume data is a JSON array of product objects
+        for(let i = 0; i < jsonResponse.productos.length; i++) {
+            let product = jsonResponse.productos[i];
+            let row = $('<tr></tr>');
+            row.append($('<td></td>').text(product.nombre));
+            row.append($('<td></td>').text(product.cantidad));
+            row.append($('<td></td>').text(product.precio_base));
+            row.append($('<td></td>').text(product.descuento));
+            row.append($('<td></td>').text(product.IVA));
+            row.append($('<td></td>').text(product.subtotal));
+            $('#lista_productos').append(row);
+        }
+        $('#subtotal_input').val(jsonResponse.subtotal_final);
+        $('#impuesto_input').val(jsonResponse.total_iva);
+        $('#total_input').val(jsonResponse.total);
+        
+        return jsonResponse.productos;
+
+    } else {
+        // Update the message content and style for error
+        mostrarMensaje(jsonResponse.message, "failed", 3000);
+    }
+
+    // Always make the message visible
+    $('#messageContainer').removeClass('d-none');
+
+    // Set up a timeout to dismiss the message after 3 seconds
+    setTimeout(function() {
+        $('#messageContainer').addClass('d-none');
+        $('#messageContainer').removeClass('alert-success');
+        $('#messageContainer').removeClass('alert-danger');
+    }, 7000);
+
+
     // return productos;
 }
 

@@ -8,21 +8,16 @@ session_start();
 function stripDecimal($number) {
     // Convert the number to a string
     $numberStr = (string)$number;
-    
     // Find the position of the decimal point
     $decimalPos = strpos($numberStr, '.');
-    
     // If there is no decimal point, return the original number
     if ($decimalPos === false) {
         return $numberStr;
     }
-    
     // Extract the part before the decimal point
     $beforeDecimal = substr($numberStr, 0, $decimalPos);
-    
     // Extract the part after the decimal point
     $afterDecimal = substr($numberStr, $decimalPos + 1, 2);
-    
     // Combine the parts back together
     $strippedNumber = $beforeDecimal . '.' . $afterDecimal;
     
@@ -50,6 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         $productos = [];
         $subtotal_final = 0;
         $total_iva = 0;
+        
         foreach ($items_carrito as $item) {
             $stmt = makeQuery($pdo, 
                 "SELECT nombre, precio_base, descuento, cantidad_total, tiene_iva FROM productos WHERE id = ?",
@@ -75,6 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             }
             $subtotal_final = $subtotal_final + $finalPrice;
             $product_data = array(
+                "id" => $item['producto_id'],
                 "nombre" => $producto[0]["nombre"],
                 "precio_base" => $producto[0]["precio_base"]."$",
                 "descuento" => ($producto[0]["descuento"] * 100)."%",

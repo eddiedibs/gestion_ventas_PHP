@@ -42,6 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                 $carrito_id = $pdo->lastInsertId();
             }
             $_SESSION['carrito_id'] = $carrito_id; // Assume cliente_id is stored in session
+            $_SESSION['cliente_id'] = $cliente_info["id"]; // Assume cliente_id is stored in session
             header('Content-Type: application/json');
             $return_data = json_encode(array(
                 "status" => "success",
