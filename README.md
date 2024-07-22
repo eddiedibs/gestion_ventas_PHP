@@ -54,6 +54,11 @@ Antes de comenzar con la instalación, asegúrese de tener los siguientes requis
 ## 3. Estructura del Proyecto
 El proyecto está organizado en los siguientes archivos principales:
 
+
+![Screenshot from 2024-07-22 06-30-10](https://github.com/user-attachments/assets/916fc832-89b5-4af1-b744-15b4f4de6f95)
+
+
+
 ### 3.1. Algunos Archivos Principales
 - `index.php`: Contiene el código HTML del diseño y funciones con JQuery.
 - `conexion.php`: Contiene la lógica de conexión con la base de datos mySQL.
@@ -88,5 +93,8 @@ los demás campos si sólo se llena la cédula/RIF y si existe el registro.
 
 ## 6. Capturas
 
+![Screenshot from 2024-07-22 06-52-17](https://github.com/user-attachments/assets/a5513bb5-78c4-4e62-8855-7720d3294c37)
+![Screenshot from 2024-07-22 06-52-43](https://github.com/user-attachments/assets/efc5ce4d-28e4-466a-8c4a-a552d6ab2431)
+![Screenshot from 2024-07-22 06-53-11](https://github.com/user-attachments/assets/36b99df5-6f63-45ef-bb38-962ec57a0f5b)
 
 
