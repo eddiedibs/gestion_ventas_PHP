@@ -8,7 +8,7 @@ function handleValidation($validation_type, $body) {
 
         // Validate cedula_rif
         if (!preg_match('/^(V|J|G|E|R|P)\d{7,9}$/', $cedula_rif)) {
-            return "Cédula/RIF inválida.";
+            return "Cédula/RIF inválida. Ejemplo: V23546975";
         }
 
         // Validate nombre
@@ -18,7 +18,7 @@ function handleValidation($validation_type, $body) {
 
         // Validate telefono
         if (!preg_match('/^\d+$/', $telefono)) {
-            return "Teléfono inválido.";
+            return "Teléfono inválido. Ejemplo: 04249787816";
         } else {
             return "";
         }

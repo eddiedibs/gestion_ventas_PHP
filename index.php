@@ -141,6 +141,7 @@
 $(document).ready(function() {
     $('#estadisticas_vista').click(function() {
       $('#estadisticasModal').modal('show');
+      cargarEstadisticas();
     });
     $('#categoria').ready(async function(){
         await cargarCategorias();
@@ -233,7 +234,7 @@ $(document).ready(function() {
             if (xhr.status === 200) {
                 // Parse the response text to JSON
                 var jsonResponse = JSON.parse(xhr.responseText);
-
+                console.log(jsonResponse);
                 // Assuming the response contains a 'status' field indicating success
                 if (jsonResponse.status === 'success') {
                     mostrarMensaje(jsonResponse.message, "success", 1000);
