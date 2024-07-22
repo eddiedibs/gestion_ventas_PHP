@@ -49,7 +49,9 @@ Antes de comenzar con la instalación, asegúrese de tener los siguientes requis
    ```
 3. Configure el archivo de conexión a la base de datos en `conexion.php` con sus credenciales de MySQL.
 
-4. Acceda a la aplicación a través de su navegador web.
+![Screenshot from 2024-07-22 06-26-52](https://github.com/user-attachments/assets/44066340-07e4-4c25-9fe6-fe50e90b4e5b)
+
+5. Acceda a la aplicación a través de su navegador web.
 
 ## 3. Estructura del Proyecto
 El proyecto está organizado en los siguientes archivos principales:
