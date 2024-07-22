@@ -20,7 +20,6 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         $stmt = null;
 
         die($return_data);
-        // header("Location: ./index.php");
 
     } catch (PDOException $e){
         require_once 'error_handler.php'; 

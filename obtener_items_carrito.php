@@ -5,24 +5,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 session_start();
 
-function stripDecimal($number) {
-    // Convert the number to a string
-    $numberStr = (string)$number;
-    // Find the position of the decimal point
-    $decimalPos = strpos($numberStr, '.');
-    // If there is no decimal point, return the original number
-    if ($decimalPos === false) {
-        return $numberStr;
-    }
-    // Extract the part before the decimal point
-    $beforeDecimal = substr($numberStr, 0, $decimalPos);
-    // Extract the part after the decimal point
-    $afterDecimal = substr($numberStr, $decimalPos + 1, 2);
-    // Combine the parts back together
-    $strippedNumber = $beforeDecimal . '.' . $afterDecimal;
-    
-    return $strippedNumber;
-}
+
 
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
@@ -39,13 +22,10 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         
         $items_carrito =  $stmt->fetchAll();
 
-
-        
-
         $productos = [];
         $subtotal_final = 0;
         $total_iva = 0;
-        
+        require_once "validator_handler.php";
         foreach ($items_carrito as $item) {
             $stmt = makeQuery($pdo, 
                 "SELECT nombre, precio_base, descuento, cantidad_total, tiene_iva FROM productos WHERE id = ?",

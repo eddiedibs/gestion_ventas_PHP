@@ -8,9 +8,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
     try {
         require_once 'conexion.php'; 
-        $query = "SELECT * FROM vendedores;";
-        $stmt = $pdo->prepare($query);
-        $stmt->execute();
+        $stmt = makeQuery($pdo, "SELECT * FROM vendedores;");
         header('Content-Type: application/json');
         $return_data = json_encode(array(
             "vendedores" => $stmt->fetchAll(),
@@ -20,7 +18,6 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         $stmt = null;
 
         die($return_data);
-        // header("Location: ./index.php");
 
     } catch (PDOException $e){
         require_once 'error_handler.php'; 

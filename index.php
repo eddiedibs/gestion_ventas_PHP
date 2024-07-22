@@ -122,6 +122,12 @@
                 <!-- Los vendedores se llenarán dinámicamente desde la base de datos -->
             </select>
         <!-- Aquí van las estadísticas. -->
+        <div class="modal-body">
+                    <p>Total de Ventas: <span id="total_ventas"></span></p>
+                    <p>Número de Ventas: <span id="num_ventas"></span></p>
+                    <p>Productos Más Vendidos:</p>
+                    <ul id="productos_mas_vendidos"></ul>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
@@ -139,6 +145,8 @@ $(document).ready(function() {
     $('#categoria').ready(async function(){
         await cargarCategorias();
         cargarProductos($('#categoria').val());
+        cargarEstadisticas();
+        
     })
     cargarVendedores("#vendedor");
     cargarVendedores("#vendedor_modal");
@@ -229,17 +237,12 @@ $(document).ready(function() {
                 // Assuming the response contains a 'status' field indicating success
                 if (jsonResponse.status === 'success') {
                     mostrarMensaje(jsonResponse.message, "success", 1000);
-
                 } else {
                     // Update the message content and style for error
                     mostrarMensaje(jsonResponse.message, "failed", 1000);
                 }
-
                 // Always make the message visible
                 $('#messageContainer').removeClass('d-none');
-
-                // Initialize the Bootstrap Alert component
-                // var messageAlert = new bootstrap.Alert(document.getElementById('messageContainer'));
 
                 // Set up a timeout to dismiss the message after 3 seconds
                 setTimeout(function() {
@@ -269,6 +272,12 @@ $(document).ready(function() {
                 $('#cantidad').val(`${data.producto_cantidad_disponible}`);
             };
         });
+    });
+
+    
+
+    $('#vendedor_modal').on('change', function() {
+        cargarEstadisticas();
     });
 
     $('#categoria').on('change', function() {
@@ -314,8 +323,22 @@ $(document).ready(function() {
             vendedor_id: $('#vendedor').val(),
             productos: productos_lista
         };
-        $.post('finalizar_venta.php', data, function(response) {
-            limpiarAll();
+        $.post('finalizar_venta.php', data, function(_,_,xhr) {
+            if (xhr.status === 200) {
+                limpiarAll();
+                // Parse the response text to JSON
+                var jsonResponse = JSON.parse(xhr.responseText);
+                // Assuming the response contains a 'status' field indicating success
+                if (jsonResponse.status === 'success') {
+                    mostrarMensaje(jsonResponse.message, "success", 3000);
+
+                } else {
+                    mostrarMensaje(jsonResponse.message, "failed", 3000);
+
+                }
+            }
+
+
         });
     });
 });
@@ -395,11 +418,6 @@ async function cargarCategorias() {
         // Append the option to the select
         $('#categoria').append(categoria_option);
     }
-    // var producto_id = $("#producto").val();
-    // $.get('cargar_producto_individual.php', { id: producto_id }, function(data) {
-    //     $('#cantidad').attr('max', data.producto_cantidad_disponible); // Update the max attribute
-
-    // });
 
 }
 
@@ -409,6 +427,31 @@ function limpiarAll() {
     $('#total_input').val("");
     $('#lista_productos').empty();
 }
+
+function cargarEstadisticas(){
+    var vendedor_id = $('#vendedor_modal').val();
+    $.post('obtener_estadisticas.php', { vendedor_id: vendedor_id }, function(_,_,xhr) {
+        if (xhr.status === 200) {
+            // Parse the response text to JSON
+            var jsonResponse = JSON.parse(xhr.responseText);
+            // Assuming the response contains a 'status' field indicating success
+            if (jsonResponse.status === 'success') {
+
+
+            } else {
+                mostrarMensaje(jsonResponse.message, "failed", 3000);
+
+            }
+        }
+        $('#total_ventas').text(jsonResponse.total_ventas);
+        $('#num_ventas').text(jsonResponse.num_ventas);
+        $('#productos_mas_vendidos').empty();
+        jsonResponse.productos_mas_vendidos.forEach(function(producto) {
+            $('#productos_mas_vendidos').append('<li>' + producto.nombre + ': ' + producto.cantidad + '</li>');
+        });
+    });
+}
+
 function cargarVendedores(vendedor_id) {
     $.get('cargar_vendedores.php', function(data) {
         // Clear any existing options
@@ -486,18 +529,6 @@ async function obtenerProductos() {
     // return productos;
 }
 
-function actualizarTotal() {
-    var subtotal = 0;
-    $('#lista_productos tr').each(function() {
-        var subtotalProducto = parseFloat($(this).find('.subtotal').text());
-        subtotal += subtotalProducto;
-    });
-    var impuesto = subtotal * 0.16;
-    var total = subtotal + impuesto;
-    $('#subtotal_input').val(subtotal.toFixed(2));
-    $('#impuesto_input').val(impuesto.toFixed(2));
-    $('#total_input').val(total.toFixed(2));
-}
 </script>
 
 </body>

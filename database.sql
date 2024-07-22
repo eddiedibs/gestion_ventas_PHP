@@ -35,9 +35,9 @@ CREATE TABLE categorias (
 -- Insertar categorias de prueba (EN CASO DE PRODUCCION SUBIR DESDE PAGINA ADMIN)
 INSERT INTO categorias (nombre) VALUES
 ('Limpieza de cocina'),
-('Limpieza de bano'),
+('Limpieza de baño'),
 ('Limpieza general'),
-('Lavanderia');
+('Lavandería');
 
 
 -- Crear la tabla de productos
@@ -85,31 +85,6 @@ CREATE TABLE IF NOT EXISTS items_carrito (
     FOREIGN KEY (carrito_id) REFERENCES carritos(id),
     FOREIGN KEY (producto_id) REFERENCES productos(id)
 );
-
--- Crear la tabla de pedidos
--- CREATE TABLE IF NOT EXISTS pedidos (
---     id INT AUTO_INCREMENT PRIMARY KEY,
---     cliente_id INT NOT NULL,
---     total DECIMAL(10, 2) NOT NULL,
---     status ENUM('pending', 'completed', 'cancelled') NOT NULL,
---     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---     FOREIGN KEY (cliente_id) REFERENCES clientes(id)
--- );
-
--- -- Crear la tabla de items de pedidos
--- CREATE TABLE IF NOT EXISTS items_pedido (
---     id INT AUTO_INCREMENT PRIMARY KEY,
---     pedido_id INT NOT NULL,
---     producto_id INT NOT NULL,
---     cantidad INT NOT NULL,
---     precio DECIMAL(10, 2) NOT NULL,
---     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---     FOREIGN KEY (pedido_id) REFERENCES pedidos(id),
---     FOREIGN KEY (producto_id) REFERENCES productos(id)
--- );
-
-
-
 
 
 -- Crear la tabla de ventas

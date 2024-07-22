@@ -24,7 +24,25 @@ function handleValidation($validation_type, $body) {
         }
 
     }
-
      
 }
+function stripDecimal($number) {
+    // Convert the number to a string
+    $numberStr = (string)$number;
+    // Find the position of the decimal point
+    $decimalPos = strpos($numberStr, '.');
+    // If there is no decimal point, return the original number
+    if ($decimalPos === false) {
+        return $numberStr;
+    }
+    // Extract the part before the decimal point
+    $beforeDecimal = substr($numberStr, 0, $decimalPos);
+    // Extract the part after the decimal point
+    $afterDecimal = substr($numberStr, $decimalPos + 1, 2);
+    // Combine the parts back together
+    $strippedNumber = $beforeDecimal . '.' . $afterDecimal;
+    
+    return $strippedNumber;
+}
+
 ?>
