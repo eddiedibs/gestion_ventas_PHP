@@ -13,6 +13,7 @@
 4. Uso de la Plataforma
    4.1. Secciones Principales
    4.2. Funcionalidades
+   4.3. Consideraciones
 6. Capturas
 
 ## 1. Introducción
@@ -76,3 +77,16 @@ Las principales funcionalidades de la aplicación incluyen:
 - Gestión, registro y compra de productos por categoría.
 - Visualización de datos del cliente.
 - Visualización de datos del vendedor.
+  
+### 4.3. Consideraciones
+- El formato de Cédula/RIF debe ser caracter identificador + serie de numeros,
+por ejemplo: V14154895
+- El formato de Teléfono debe ser una serie de números sin símbolos especiales,
+por ejemplo: 04121465976
+- Como característica, está el botón Seleccionar Cliente, éste es capaz de rellenar
+los demás campos si sólo se llena la cédula/RIF y si existe el registro.
+
+## 6. Capturas
+
+
+
