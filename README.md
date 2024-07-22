@@ -66,7 +66,8 @@ El proyecto está organizado en los siguientes archivos principales:
 - `handler_producto.php`: Se encarga de agregar o eliminar items del carrito, y realizar las validaciones respectivas.
 - `guardar_cliente.php`: Se encarga de guardar la información ingresada del cliente en la base de datos.
 - `cargar_productos.php`: Su función es la de cargar los productos en el formulario.
-- `error_handler.php`: Se encarga de validar errores comunes que puede presentar el usuario, como por ejemplo: No colocar Cedula/RIF al intentar registrar al cliente.
+- `error_handler.php`: Se encarga de validar errores comunes que puede presentar el usuario.
+- `validator_handler.php`: Se encarga de validar ciertos inputs que puede presentar el usuario, como por ejemplo: Validar la Cédula/RIF que ingrese el usuario.
 - `obtener_estadisticas.php`: Su función es la de mostrar las estadísticas de los vendedores, tales como el Total de Ventas, Número de ventas y Productos Más Vendidos.
 
 ## 4. Uso de la Plataforma
